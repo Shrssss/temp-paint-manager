@@ -1,21 +1,41 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class PaintBullet : MonoBehaviour
 {
     [SerializeField] private Color32 bulletColor = new Color32(255, 0, 0, 255);
+    [SerializeField] private LayerMask groundLayer; // 塗りたい地面のレイヤーを指定
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private Vector2 lastPosition;
+
+    void Start()
     {
-        // 衝突したオブジェクトに SpritePaintManager がついているか判定
-        if (collision.gameObject.TryGetComponent<SpritePaintManager>(out var paintManager))
+        lastPosition = transform.position;
+    }
+
+    void Update()
+    {
+        Vector2 currentPosition = transform.position;
+
+        // 移動前後の2点間で地面（コライダー）との接触を判定
+        RaycastHit2D hit = Physics2D.Linecast(lastPosition, currentPosition, groundLayer);
+
+        if (hit.collider != null)
         {
-            // 最初の接触点（ワールド座標）を取得して塗る
-            Vector2 hitPoint = collision.GetContact(0).point;
-            paintManager.PaintAtWorldPoint(hitPoint, bulletColor);
+            if (hit.collider.TryGetComponent<SpritePaintManager>(out var paintManager))
+            {
+                paintManager.PaintLineAtWorldPoint(lastPosition, hit.point, bulletColor);
+            }
+        }
+        else
+        {
+            // Top-Down視点などで弾が地面の上を通過している場合
+            RaycastHit2D overlapHit = Physics2D.Raycast(currentPosition, Vector2.zero, 0f, groundLayer);
+            if (overlapHit.collider != null && overlapHit.collider.TryGetComponent<SpritePaintManager>(out var paintManager))
+            {
+                paintManager.PaintLineAtWorldPoint(lastPosition, currentPosition, bulletColor);
+            }
         }
 
-        // 地面や壁に着弾したら弾を破棄
-        Destroy(gameObject);
+        lastPosition = currentPosition;
     }
 }

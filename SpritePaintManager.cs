@@ -80,11 +80,9 @@ public class SpritePaintManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 指定したワールド座標を中心に塗りを実行
+    /// 指定した2点（ワールド座標）の間を直線状に塗る
     /// </summary>
-    /// <param name="worldPos">着弾地点などのワールド座標</param>
-    /// <param name="customColor">塗る色（指定しない場合は設定されたbrushColorを使用）</param>
-    public void PaintAtWorldPoint(Vector2 worldPos, Color32? customColor = null)
+    public void PaintLineAtWorldPoint(Vector2 startWorldPos, Vector2 endWorldPos, Color32? customColor = null)
     {
         Color32 originalColor = brushColor;
         if (customColor.HasValue)
@@ -92,8 +90,10 @@ public class SpritePaintManager : MonoBehaviour
             brushColor = customColor.Value;
         }
 
-        Vector2 drawPoint = WorldToTexturePoint(worldPos);
-        Draw(drawPoint);
+        Vector2 startPoint = WorldToTexturePoint(startWorldPos);
+        Vector2 endPoint = WorldToTexturePoint(endWorldPos);
+
+        DrawLine(startPoint, endPoint);
         UpdateTexture();
 
         brushColor = originalColor;

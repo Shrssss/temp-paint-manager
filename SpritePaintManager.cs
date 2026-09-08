@@ -31,7 +31,6 @@ public class SpritePaintManager : MonoBehaviour
         drawTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
         drawTexture.filterMode = FilterMode.Point;
 
-        // 動的テクスチャから新しいスプライトを生成して適用
         Sprite newSprite = Sprite.Create(
             drawTexture,
             new Rect(0, 0, width, height),
@@ -50,12 +49,10 @@ public class SpritePaintManager : MonoBehaviour
             Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 mouseWorldPos2D = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
 
-            // 2Dレイキャストでコライダーとの接触を判定
             RaycastHit2D hit = Physics2D.Raycast(mouseWorldPos2D, Vector2.zero);
 
             if (hit.collider != null && hit.collider.gameObject == gameObject)
             {
-                // ワールド座標をテクスチャのピクセル座標(X, Y)に変換
                 Vector2 drawPoint = WorldToTexturePoint(hit.point);
 
                 if (touching)
@@ -82,12 +79,30 @@ public class SpritePaintManager : MonoBehaviour
         }
     }
 
-    // ワールド座標からスプライトのピクセル座標へ変換する処理
+    /// <summary>
+    /// 指定したワールド座標を中心に塗りを実行
+    /// </summary>
+    /// <param name="worldPos">着弾地点などのワールド座標</param>
+    /// <param name="customColor">塗る色（指定しない場合は設定されたbrushColorを使用）</param>
+    public void PaintAtWorldPoint(Vector2 worldPos, Color32? customColor = null)
+    {
+        Color32 originalColor = brushColor;
+        if (customColor.HasValue)
+        {
+            brushColor = customColor.Value;
+        }
+
+        Vector2 drawPoint = WorldToTexturePoint(worldPos);
+        Draw(drawPoint);
+        UpdateTexture();
+
+        brushColor = originalColor;
+    }
+
     private Vector2 WorldToTexturePoint(Vector2 worldPos)
     {
         Vector3 localPos = transform.InverseTransformPoint(worldPos);
 
-        // スプライトのローカルサイズを取得してUV(0.0 ~ 1.0)を算出
         Vector2 spriteSize = spriteRenderer.sprite.rect.size / spriteRenderer.sprite.pixelsPerUnit;
         float u = (localPos.x / spriteSize.x) + 0.5f;
         float v = (localPos.y / spriteSize.y) + 0.5f;

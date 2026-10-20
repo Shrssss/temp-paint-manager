@@ -1,5 +1,9 @@
 using UnityEngine;
 
+
+///
+///    弾に付ける、地面塗りを行うスクリプト
+///
 public class PaintBullet : MonoBehaviour
 {
 

@@ -142,13 +142,13 @@ public class PaintBullet : MonoBehaviour
     ///        (地面がある場所で、塗を生成する処理のまとまり)
     ///
     ///    まず、この関数を実行するときに塗る場所の座標(worldPos)と塗りのサイズ(size)を入力する。
-    ///        (もし、座標(0,0)で大きさ10の塗りを行いたいなら、　PaintAtPosition( Vector2(0,0), 10)　とコードに入力)
+    ///        (もし、座標(0,0)で大きさ10の塗りを行いたいなら、　PaintAtPosition(Vector2(0,0), 10)　とコードに入力)
     ///        ↓
     ///    塗り場所(worldPos)で地面が存在するか判断
     ///        ↓
     ///    もし、地面がある and SpritePaintManagerスクリプトがある(塗れる) なら、
     ///    {
-    ///        SpritePaintManagerの地面を丸く塗る関数を呼び出し、塗る
+    ///        SpritePaintManagerの地面を丸く塗る関数(PaintCircleAtWorldPoint)を呼び出し、塗る
     ///    }
     
     /// <summary>

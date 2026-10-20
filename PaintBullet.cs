@@ -118,6 +118,8 @@ public class PaintBullet : MonoBehaviour
         PaintAtPosition(transform.position, largeBrushSize);
     }
 
+
+
     ///    OnApplicationQuit関数の概要
     ///        (ゲーム終了 or 停止時に実行される処理のまとまり)
     ///

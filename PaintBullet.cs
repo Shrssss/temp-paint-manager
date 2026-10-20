@@ -2,23 +2,36 @@ using UnityEngine;
 
 public class PaintBullet : MonoBehaviour
 {
+
+
+    ///
+    ///    必要な変数
+    ///
+
+
+    //    色の設定と、塗る地面の設定のための変数
     [Header("Color & Layer")]
-    // 弾が塗る色を指定
-    [SerializeField] private Color32 bulletColor = new Color32(255, 0, 0, 255);
-    // 塗る対象（地面などのキャンバス）を判定するための変数
-    [SerializeField] private LayerMask groundLayer;
+        // 弾が塗る色を指定
+        [SerializeField] private Color32 bulletColor = new Color32(255, 0, 0, 255);
+        // 塗る対象（地面などのキャンバス）を判定するための変数
+        [SerializeField] private LayerMask groundLayer;
 
+
+    //    弾の軌跡（通った場所）用の塗り設定のための変数
     [Header("Trail Settings (軌跡の塗り)")]
-    // 移動中に確率で落とすインク（飛沫）のサイズ
-    [SerializeField] private int smallBrushSize = 4;
-    // インクを落とす確率 (0.0=絶対落とさない 〜 1.0=必ず落とす)
-    [SerializeField, Range(0f, 1f)] private float trailDropChance = 0.35f; 
-    // どれくらい移動したら「インクを落とすかどうかの確率判定」を行うかという距離（ワールド単位）
-    [SerializeField] private float stepDistance = 0.25f; 
+        // 移動中に確率で落とすインク（飛沫）のサイズ
+        [SerializeField] private int smallBrushSize = 4;
+        // インクを落とす確率 (0.0=絶対落とさない 〜 1.0=必ず落とす)
+        [SerializeField, Range(0f, 1f)] private float trailDropChance = 0.35f; 
+        // どれくらい移動したら「インクを落とすかどうかの確率判定」を行うかという距離（ワールド単位）
+        [SerializeField] private float stepDistance = 0.25f; 
 
+
+    //    弾が消されたとき用の塗り設定のための変数
     [Header("Impact Settings (破棄時の塗り)")]
-    // 弾が消滅（破棄）した際にその場に塗る大きなインクのサイズ
-    [SerializeField] private int largeBrushSize = 25;
+        // 弾が消滅（破棄）した際にその場に塗る大きなインクのサイズ
+        [SerializeField] private int largeBrushSize = 25;
+
 
     // 前回の判定時の弾の座標を保持する変数
     private Vector2 lastPosition;
@@ -26,12 +39,34 @@ public class PaintBullet : MonoBehaviour
     // ゲーム終了時やシーン遷移時にOnDestroyが呼ばれた際、無駄な処理やエラーを防ぐための変数
     private static bool isApplicationQuitting = false;
 
+
+    ///
+    ///    処理
+    ///
+
+
+    //    startでは初期位置（弾が発射された場所）を保存するだけ
     void Start()
     {
         // 生成された時の初期位置をlastPositionに保存
         lastPosition = transform.position;
     }
 
+
+
+    ///    Updateの処理の概要
+    ///
+    ///    今の弾の場所を保存(currentPosition) ＆ １フレーム前の位置からの距離を計算・保存(distance)
+    ///        ↓
+    ///    もし、移動距離距離(distance)が途中塗りの間隔(stepDistance)より長かったら
+    ///    {    
+    ///         間隔が実際の移動距離の中に何回収まるか計算・保存(steps)
+    ///            ↓
+    ///         収まる回数分、確率で塗りを生成（00～00行目）
+    ///    }
+    ///        ↓
+    ///    生成が終わったら、処理後の場所(lastPosition)を更新
+    ///
     void Update()
     {
         // 現在のフレームでの弾の座標を取得
@@ -64,7 +99,15 @@ public class PaintBullet : MonoBehaviour
         }
     }
 
-    // このオブジェクト（弾）が破棄される瞬間に呼ばれるUnityの標準イベント関数
+
+
+    ///    OnDestroy関数の概要
+    ///       (消された場合に実行される処理のまとまり)
+    ///
+    ///    もし、ゲームが終了されてる or このスクリプトがあるシーンが使われてない　なら、下の処理をしない(returnする)
+    ///        ↓
+    ///    消された時点でPaintAtPosition関数を実行し、塗りを描画する
+    ///
     private void OnDestroy()
     {
         // ゲーム終了時、またはシーン自体がアンロードされている最中の場合は処理しない
@@ -75,13 +118,33 @@ public class PaintBullet : MonoBehaviour
         PaintAtPosition(transform.position, largeBrushSize);
     }
 
-    // ゲーム終了時（エディタのプレイ停止時含む）に呼ばれるUnityの標準イベント関数
+    ///    OnApplicationQuit関数の概要
+    ///        (ゲーム終了 or 停止時に実行される処理のまとまり)
+    ///
+    ///    ゲーム終了時に終了したことを変数として保存(isApplicationQuitting)
+    ///        (スクリプト側でゲームが終了しているか判断するために必要)
+    ///
     private void OnApplicationQuit()
     {
         // ゲーム終了中であることをフラグとして記録する
         isApplicationQuitting = true;
     }
 
+
+
+    ///    PaubtAtPosition関数の概要
+    ///        (地面がある場所で、塗を生成する処理のまとまり)
+    ///
+    ///    まず、この関数を実行するときに塗る場所の座標(worldPos)と塗りのサイズ(size)を入力する。
+    ///        (もし、座標(0,0)で大きさ10の塗りを行いたいなら、　PaintAtPosition( Vector2(0,0), 10)　とコードに入力)
+    ///        ↓
+    ///    塗り場所(worldPos)で地面が存在するか判断
+    ///        ↓
+    ///    もし、地面がある and SpritePaintManagerスクリプトがある(塗れる) なら、
+    ///    {
+    ///        SpritePaintManagerの地面を丸く塗る関数を呼び出し、塗る
+    ///    }
+    
     /// <summary>
     /// 指定されたワールド座標に地面があるか判定し、存在すれば指定サイズで色を塗る
     /// </summary>
